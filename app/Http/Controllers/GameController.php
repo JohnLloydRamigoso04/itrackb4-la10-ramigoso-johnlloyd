@@ -18,12 +18,23 @@ class GameController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $games = $this->getGames();
+        $allGames = $this->getGames();
+        $genre = $request->query('genre');
+        $developer = $request->query('developer');
+
+        // Filter array using both query parameters preserving keys
+        $games = array_filter($allGames, function ($game) use ($genre, $developer) {
+            $matchGenre = !$genre || strtolower($game['genre']) === strtolower($genre);
+            $matchDev = !$developer || strtolower($game['developer']) === strtolower($developer);
+            return $matchGenre && $matchDev;
+        });
+
         return view('games.index', [
             'games' => $games,
-            'activeFilter' => 'All'
+            'selectedGenre' => $genre,
+            'selectedDeveloper' => $developer,
         ]);
     }
 
@@ -68,28 +79,5 @@ class GameController extends Controller
         $games = $this->getGames();
         $featuredGame = $games[2];
         return view('games.show', ['game' => $featuredGame]);
-    }
-
-    public function filter($genre = null)
-    {
-        $allGames = $this->getGames();
-
-        if ($genre === null) {
-            $games = $allGames;
-            $activeFilter = 'All';
-        } else {
-            $games = [];
-            foreach ($allGames as $game) {
-                if (strtolower($game['genre']) === strtolower($genre)) {
-                    $games[$game['id']] = $game;
-                }
-            }
-            $activeFilter = $genre;
-        }
-
-        return view('games.index', [
-            'games' => $games,
-            'activeFilter' => $activeFilter
-        ]);
     }
 }
