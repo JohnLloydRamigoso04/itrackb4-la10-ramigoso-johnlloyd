@@ -27,10 +27,46 @@ class GameController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        // Empty stub
+    }
+
+    public function store(Request $request)
+    {
+        // Empty stub
+    }
+
+    public function show(string $id)
+    {
+        $games = $this->getGames();
+
+        if (!isset($games[$id])) {
+            abort(404);
+        }
+
+        return view('games.show', ['game' => $games[$id]]);
+    }
+
+    public function edit(string $id)
+    {
+        // Empty stub
+    }
+
+    public function update(Request $request, string $id)
+    {
+        // Empty stub
+    }
+
+    public function destroy(string $id)
+    {
+        // Empty stub
+    }
+
     public function featured()
     {
         $games = $this->getGames();
-        $featuredGame = $games[2]; // Featured pick: Elden Ring
+        $featuredGame = $games[2];
         return view('games.show', ['game' => $featuredGame]);
     }
 
@@ -56,16 +92,4 @@ class GameController extends Controller
             'activeFilter' => $activeFilter
         ]);
     }
-
-    public function show($id)
-    {
-        $games = $this->getGames();
-
-        if (!isset($games[$id])) {
-            abort(404);
-        }
-
-        return view('games.show', ['game' => $games[$id]]);
-    }
 }
-

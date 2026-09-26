@@ -7,11 +7,9 @@ Route::get('/whoami', function () {
     return 'JOHN LLOYD R. RAMIGOSO | Block 4C | ITRACKB4 Laravel 12';
 });
 
-
-Route::get('/games', [GameController::class, 'index'])->name('games.index');
-
+// Part C: Custom routes placed BEFORE Route::resource to prevent parameter hijacking
 Route::get('/games/featured', [GameController::class, 'featured'])->name('games.featured');
-
 Route::get('/games/filter/{genre?}', [GameController::class, 'filter'])->name('games.filter');
 
-Route::get('/games/{id}', [GameController::class, 'show'])->name('games.show');
+// Parts B & D: Resource line restricted to implemented actions only
+Route::resource('games', GameController::class)->only(['index', 'show']);
