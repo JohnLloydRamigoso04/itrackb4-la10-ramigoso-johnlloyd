@@ -14,4 +14,4 @@ Route::get('/games/filter/{genre?}', function ($genre = null) {
 
 Route::get('/games/featured', [GameController::class, 'featured'])->name('games.featured');
 
-Route::resource('games', GameController::class)->only(['index', 'show']);
+Route::resource('games', GameController::class)->only(['index', 'show', 'create', 'store']);

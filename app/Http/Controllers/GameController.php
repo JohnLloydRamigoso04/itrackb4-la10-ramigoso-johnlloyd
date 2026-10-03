@@ -6,16 +6,21 @@ use Illuminate\Http\Request;
 
 class GameController extends Controller
 {
+    // PART A: Read from JSON file
     private function getGames()
     {
-        return [
-            1 => ['id' => 1, 'title' => 'The Legend of Zelda: Breath of the Wild', 'developer' => 'Nintendo', 'genre' => 'Action-adventure'],
-            2 => ['id' => 2, 'title' => 'Elden Ring', 'developer' => 'FromSoftware', 'genre' => 'Action RPG'],
-            3 => ['id' => 3, 'title' => 'Cyberpunk 2077', 'developer' => 'CD Projekt Red', 'genre' => 'Action RPG'],
-            4 => ['id' => 4, 'title' => 'Minecraft', 'developer' => 'Mojang Studios', 'genre' => 'Sandbox'],
-            5 => ['id' => 5, 'title' => 'Hollow Knight', 'developer' => 'Team Cherry', 'genre' => 'Metroidvania'],
-            6 => ['id' => 6, 'title' => 'Stardew Valley', 'developer' => 'ConcernedApe', 'genre' => 'Simulation'],
-        ];
+        $path = storage_path('app/games.json');
+        if (!file_exists($path)) {
+            return [];
+        }
+        return json_decode(file_get_contents($path), true) ?? [];
+    }
+
+    // PART A: Write to JSON file
+    private function saveGames(array $games)
+    {
+        $path = storage_path('app/games.json');
+        file_put_contents($path, json_encode($games, JSON_PRETTY_PRINT));
     }
 
     public function index(Request $request)
@@ -24,7 +29,6 @@ class GameController extends Controller
         $genre = $request->query('genre');
         $developer = $request->query('developer');
 
-        // Filter array using both query parameters preserving keys
         $games = array_filter($allGames, function ($game) use ($genre, $developer) {
             $matchGenre = !$genre || strtolower($game['genre']) === strtolower($genre);
             $matchDev = !$developer || strtolower($game['developer']) === strtolower($developer);
@@ -40,12 +44,27 @@ class GameController extends Controller
 
     public function create()
     {
-        // Empty stub
+        return view('games.create');
     }
 
     public function store(Request $request)
     {
-        // Empty stub
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'developer' => 'required|string|max:100',
+            'genre' => 'required|in:Action RPG,Sandbox,Simulation,Action-adventure,Metroidvania' // Fixed list rule
+        ]);
+
+        $games = $this->getGames();
+
+        $newId = empty($games) ? 1 : max(array_keys($games)) + 1;
+        $validated['id'] = $newId;
+        $games[$newId] = $validated;
+
+        $this->saveGames($games);
+
+        return redirect()->route('games.index')->with('success', 'Game added successfully!');
     }
 
     public function show(string $id)
@@ -59,25 +78,15 @@ class GameController extends Controller
         return view('games.show', ['game' => $games[$id]]);
     }
 
-    public function edit(string $id)
-    {
-        // Empty stub
-    }
-
-    public function update(Request $request, string $id)
-    {
-        // Empty stub
-    }
-
-    public function destroy(string $id)
-    {
-        // Empty stub
-    }
+    public function edit(string $id) { /* Empty stub */ }
+    public function update(Request $request, string $id) { /* Empty stub */ }
+    public function destroy(string $id) { /* Empty stub */ }
 
     public function featured()
     {
         $games = $this->getGames();
-        $featuredGame = $games[2];
+        $featuredGame = $games[2] ?? null;
+        if (!$featuredGame) abort(404);
         return view('games.show', ['game' => $featuredGame]);
     }
 }

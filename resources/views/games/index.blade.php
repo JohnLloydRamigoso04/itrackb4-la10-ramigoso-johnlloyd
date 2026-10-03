@@ -10,6 +10,7 @@
             <div>
                 @if($selectedGenre || $selectedDeveloper)
                     <a href="{{ route('games.index') }}" class="btn btn-sm btn-outline-danger">Clear All Filters</a>
+                    <a href="{{ route('games.create') }}" class="btn btn-sm btn-success">Add New Game</a>
                 @endif
             </div>
         </div>
