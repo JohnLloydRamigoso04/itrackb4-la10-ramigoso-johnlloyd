@@ -4,26 +4,36 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Game;
+use App\Models\Genre; // Part E: Import the lookup model
+use Illuminate\Support\Facades\DB; // Part F: Import DB for query counting
 
 class GameController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
-        $games = Game::all();
-        
-        $genre = $request->query('genre');
+        // Part F: Temporary query counter
+        DB::enableQueryLog(); 
+
+        $genre_id = $request->query('genre_id'); // Part E: Filter by ID
         $developer = $request->query('developer');
 
-        if ($genre || $developer) {
-            $games = Game::query()
-                ->when($genre, fn($q) => $q->where('genre', $genre))
-                ->when($developer, fn($q) => $q->where('developer', $developer))
-                ->get();
+        // FOR SCREENSHOT 6: Leave it exactly like this (Game::query())
+        // FOR SCREENSHOT 7: Change this to -> Game::with('genre');
+        $query = Game::with('genre');
+
+        if ($genre_id) {
+            $query = $query->where('genre_id', $genre_id);
         }
+        
+        if ($developer) {
+            $query = $query->where('developer', $developer);
+        }
+
+        $games = $query->get();
 
         return view('games.index', [
             'games' => $games,
-            'selectedGenre' => $genre,
+            'selectedGenreId' => $genre_id,
             'selectedDeveloper' => $developer
         ]);
     }
@@ -36,7 +46,8 @@ class GameController extends Controller
 
     public function create()
     {
-        return view('games.create');
+        $genres = Genre::all(); // Part E: Pass lookup rows to the form dropdown
+        return view('games.create', compact('genres'));
     }
 
     public function store(Request $request)
@@ -44,13 +55,12 @@ class GameController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'developer' => 'required|string|max:100',
-            'genre' => 'required|in:Action RPG,Sandbox,Simulation,Action-adventure,Metroidvania',
+            'genre_id' => 'required|exists:genres,id', // Part E: Validate against the lookup table
             'release_year' => 'required|integer',
             'is_multiplayer' => 'required|boolean',
             'metacritic_score' => 'nullable|integer'
         ]);
 
-        // Eloquent handles the ID generation and saving automatically
         Game::create($validated);
 
         return redirect()->route('games.index')->with('success', 'Game added successfully!');
@@ -62,7 +72,6 @@ class GameController extends Controller
 
     public function featured()
     {
-        // Fetch ID 3 directly from the database using Eloquent
         $featuredGame = Game::findOrFail(3); 
         return view('games.show', ['game' => $featuredGame]);
     }
