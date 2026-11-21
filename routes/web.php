@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/whoami', function () {
@@ -8,10 +9,5 @@ Route::get('/whoami', function () {
 });
 
 
-Route::get('/games/filter/{genre?}', function ($genre = null) {
-    return redirect()->route('games.index', array_filter(['genre' => $genre]));
-});
-
-Route::get('/games/featured', [GameController::class, 'featured'])->name('games.featured');
-
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::resource('games', GameController::class);

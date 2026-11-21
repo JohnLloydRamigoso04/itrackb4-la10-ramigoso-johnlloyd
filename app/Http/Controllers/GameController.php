@@ -10,30 +10,64 @@ use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
+{
+    $search = $request->query('search');
+    $genre_id = $request->query('genre_id');
+    $is_multiplayer = $request->query('is_multiplayer');
+    $sort = $request->query('sort', 'title');
+
+    if (! in_array($sort, ['title', 'release_year', 'metacritic_score'])) {
+        $sort = 'title';
+    }
+
+    $query = Game::with('genre');
+
+    if ($search) {
+        $query = $query->where('title', 'like', "%{$search}%");
+    }
+
+    if ($genre_id) {
+        $query = $query->where('genre_id', $genre_id);
+    }
+
+    if ($is_multiplayer !== null && $is_multiplayer !== '') {
+        $query = $query->where('is_multiplayer', $is_multiplayer);
+    }
+
+    $games = $query->orderBy($sort)->paginate(5)->withQueryString();
+    $genres = Genre::all();
+
+    return view('games.index', [
+        'games' => $games,
+        'genres' => $genres,
+    ]);
+}
+
+public function create()
     {
-        DB::enableQueryLog(); 
+        $genres = Genre::all();
+        return view('games.create', compact('genres'));
+    }
 
-        $genre_id = $request->query('genre_id'); 
-        $developer = $request->query('developer');
-
-        $query = Game::with('genre');
-
-        if ($genre_id) {
-            $query = $query->where('genre_id', $genre_id);
-        }
-        
-        if ($developer) {
-            $query = $query->where('developer', $developer);
-        }
-
-        $games = $query->get();
-
-        return view('games.index', [
-            'games' => $games,
-            'selectedGenreId' => $genre_id,
-            'selectedDeveloper' => $developer
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'developer' => 'required|string|max:100',
+            'genre_id' => 'required|exists:genres,id',
+            'release_year' => 'required|integer',
+            'is_multiplayer' => 'required|boolean',
+            'metacritic_score' => 'nullable|integer'
         ]);
+
+        $game = Game::create($validated);
+
+        Log::info('Game saved', [
+            'id' => $game->id,
+        ]);
+
+        return redirect()->route('games.index')->with('success', 'Game added successfully!');
     }
 
     public function show(Game $game)
