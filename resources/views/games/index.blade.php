@@ -15,7 +15,6 @@
             </div>
         </div>
 
-        <!-- Active Filters Display -->
         <div class="mb-3 p-2 bg-light rounded border">
             <small class="fw-bold">Active Filters:</small>
             <span class="badge bg-primary ms-1">
@@ -26,7 +25,6 @@
             </span>
         </div>
 
-        <!-- Filter Controls using IDs (No extra DB query needed) -->
         <div class="row g-2 mb-4">
             <div class="col-md-6">
                 <small class="fw-bold d-block mb-1">Filter by Genre:</small>
@@ -56,6 +54,7 @@
                         <th>Title</th>
                         <th>Developer</th>
                         <th>Genre</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,10 +71,19 @@
                             </td>
                             <td>{{ $game->developer }}</td>
                             <td><span class="badge bg-secondary">{{ $game->genre->name }}</span></td>
+                            <td>
+                                <a href="{{ route('games.edit', $game) }}" class="btn btn-warning btn-sm">Edit</a>
+                                
+                                <form action="{{ route('games.destroy', $game) }}" method="POST" onsubmit="return confirm('Delete this record?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-danger py-4">
+                            <td colspan="5" class="text-center text-danger py-4">
                                 No video games found.
                             </td>
                         </tr>

@@ -8,9 +8,10 @@
         <h3 class="mb-0">Add a New Game</h3>
     </div>
     <div class="card-body">
-        <form action="{{ route('games.store') }}" method="POST">
+        <form action="{{ route('games.update', $game) }}" method="POST">
             @csrf
-
+                @method('PUT')
+                
             <div class="mb-3">
                 <label for="title" class="form-label fw-bold">Game Title</label>
                 <input type="text" name="title" id="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title') }}">

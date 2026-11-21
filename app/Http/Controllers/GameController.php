@@ -38,41 +38,38 @@ class GameController extends Controller
         ]);
     }
 
-    public function show(string $id)
+    public function show(Game $game)
     {
-        $game = Game::findOrFail($id);
+        // No findOrFail needed! Laravel fetches it automatically.
         return view('games.show', compact('game'));
     }
 
-    public function create()
+    public function edit(Game $game)
     {
-        $genres = Genre::all(); // Part E: Pass lookup rows to the form dropdown
-        return view('games.create', compact('genres'));
+        $genres = Genre::all(); // Fetch lookup rows for the dropdown
+        return view('games.edit', compact('game', 'genres'));
     }
 
-    public function store(Request $request)
+    public function update(Request $request, Game $game)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'developer' => 'required|string|max:100',
-            'genre_id' => 'required|exists:genres,id', // Part E: Validate against the lookup table
+            'genre_id' => 'required|exists:genres,id',
             'release_year' => 'required|integer',
             'is_multiplayer' => 'required|boolean',
             'metacritic_score' => 'nullable|integer'
         ]);
 
-        Game::create($validated);
+        $game->update($validated);
 
-        return redirect()->route('games.index')->with('success', 'Game added successfully!');
+        return redirect()->route('games.index')->with('success', 'Game updated successfully!');
     }
 
-    public function edit(string $id) { /* Empty stub */ }
-    public function update(Request $request, string $id) { /* Empty stub */ }
-    public function destroy(string $id) { /* Empty stub */ }
-
-    public function featured()
+    public function destroy(Game $game)
     {
-        $featuredGame = Game::findOrFail(3); 
-        return view('games.show', ['game' => $featuredGame]);
+        $game->delete();
+
+        return redirect()->route('games.index')->with('success', 'Game deleted successfully!');
     }
 }
