@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Game;
-use App\Models\Genre; // Part E: Import the lookup model
-use Illuminate\Support\Facades\DB; // Part F: Import DB for query counting
+use App\Models\Genre; 
+use Illuminate\Support\Facades\DB; 
 
 class GameController extends Controller
 {
-   public function index(Request $request)
+    public function index(Request $request)
     {
-        // Part F: Temporary query counter
         DB::enableQueryLog(); 
 
-        $genre_id = $request->query('genre_id'); // Part E: Filter by ID
+        $genre_id = $request->query('genre_id'); 
         $developer = $request->query('developer');
 
-        // FOR SCREENSHOT 6: Leave it exactly like this (Game::query())
-        // FOR SCREENSHOT 7: Change this to -> Game::with('genre');
         $query = Game::with('genre');
 
         if ($genre_id) {
@@ -40,13 +38,12 @@ class GameController extends Controller
 
     public function show(Game $game)
     {
-        // No findOrFail needed! Laravel fetches it automatically.
         return view('games.show', compact('game'));
     }
 
     public function edit(Game $game)
     {
-        $genres = Genre::all(); // Fetch lookup rows for the dropdown
+        $genres = Genre::all();
         return view('games.edit', compact('game', 'genres'));
     }
 
@@ -63,13 +60,19 @@ class GameController extends Controller
 
         $game->update($validated);
 
+        Log::info('Game saved', [
+            'id' => $game->id,
+        ]);
+
         return redirect()->route('games.index')->with('success', 'Game updated successfully!');
     }
 
     public function destroy(Game $game)
-    {
-        $game->delete();
+{
+    abort_if($game->genre->games()->count() === 1, 403);
 
-        return redirect()->route('games.index')->with('success', 'Game deleted successfully!');
-    }
+    $game->delete();
+
+    return redirect()->route('games.index');
+}
 }
